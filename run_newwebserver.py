@@ -10,17 +10,19 @@ ec2 = boto3.resource('ec2')
 def create_instance():
     # string to hold instance name
     value = 'instance name here'
+    # Holds tag info
+    tags = [{'Key': 'Name', 'Value': value}]
+    # Used for TagSpecification field to name the instance
+    tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
     
     #creation of instance
-    new_instance = ec2.create_instances(
+    ec2.create_instances(
         ImageId = 'ami-acd005d5',
         MinCount = 1,
         MaxCount = 1,
+        TagSpecifications = tag_spec,
         InstanceType = 't2.micro'
     )
-    
-    #naming of instance
-    ec2.create_tags(Resources=[new_instance[0].id], Tags=[{'Key':'Name', 'Value': value}])
 
 def main():
     create_instance()
