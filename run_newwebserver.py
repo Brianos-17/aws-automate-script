@@ -16,16 +16,6 @@ def create_instance():
     # Used for TagSpecification field to name the instance
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
     
-# Function to create a new bucket
-# TODO: create while loop incase bucket name is not unique
-def create_bucket(name):
-    try:
-        response = s3.create_bucket(Bucket=bucket_name, CreateBucketconfiguration={'LocationConstraint': 'eu-west-1'})
-        print(response)
-    except Exception as error:
-        print(error)
-    
-    
     #creation of instance
     ec2.create_instances(
         ImageId = 'ami-acd005d5',
@@ -34,6 +24,15 @@ def create_bucket(name):
         TagSpecifications = tag_spec,
         InstanceType = 't2.micro'
     )
+    
+# Function to create a new bucket
+# TODO: create while loop incase bucket name is not unique
+def create_bucket(name):
+    try:
+        response = s3.create_bucket(Bucket=bucket_name, CreateBucketconfiguration={'LocationConstraint': 'eu-west-1'})
+        print(response)
+    except Exception as error:
+        print(error)
 
 def main():
     create_instance()
