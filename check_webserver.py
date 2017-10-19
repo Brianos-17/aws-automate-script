@@ -1,20 +1,16 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
-import sys
-import boto3
-ec2 = boto3.resource('ec2')
-s3 = boto3.resource('s3')
 import subprocess
 
 # Asks user if they wish to start running nginx
 def run_nginx():
     #user input
-    will_run = input('Start nginx?(y/n): ')
+    will_run = input('Start nginx?(yes/n): ')
     #converts to lower case
     will_run = str.lower(will_run)
     
     # checks user's input and will run nginx if input = 'y'
-    if will_run == 'y':
+    if will_run == 'yes':
         (status, output) = subprocess.getstatusoutput('sudo service nginx start')
         print(output)
     elif will_run == 'n':
@@ -26,12 +22,12 @@ def run_nginx():
 # Asks user if they wish to stop nginx running
 def stop_nginx():
     # user input
-    will_stop = input('Stop nginx?(y/n): ')
+    will_stop = input('Stop nginx?(yes/n): ')
     #converts to lower case
     will_stop = str.lower(will_stop)
     
     # checks user input and will stop ngrinx if input = 'n'
-    if will_stop == 'y':
+    if will_stop == 'yes':
         (status, output) = subprocess.getstatusoutput('sudo service nginx stop')
         print(output)
     elif will_stop == 'n':
@@ -51,7 +47,7 @@ def check_nginx():
     # will prompt user if nginx processes are running or not
     # will ask the user if they wish to stop or run nginx
     if status > 0:
-        print('NOOT RUNNING')
+        print('NOT RUNNING')
         run_nginx()
     else:
         print('RUNNING')
