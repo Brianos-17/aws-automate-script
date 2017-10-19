@@ -41,7 +41,7 @@ def create_instance():
         instance[0].reload()
         print("Public IP address:", instance[0].public_ip_address)
         
-        cmd = "ssh -o StrictHostKeyChecking=no -i lab00key.pem ec2-user@" + instance[0].public_ip_address + " 'pwd'"
+        cmd = "ssh -o StrictHostKeyChecking=no -i ~/comp_sci/dev-ops/lab00key.pem ec2-user@" + instance[0].public_ip_address + " 'pwd'"
         time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
