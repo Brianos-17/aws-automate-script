@@ -2,6 +2,8 @@
 
 import sys
 import boto3
+import time
+import subprocess
 
 # Declaring ec2 variable
 ec2 = boto3.resource('ec2')
@@ -16,19 +18,37 @@ def create_instance():
     # Used for TagSpecification field to name the instance
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
 
-
     # A try/except to prevent the script from crashing
     try:
         #creation of instance
-        ec2.create_instances(
+        instance = ec2.create_instances(
             ImageId = 'ami-acd005d5',
             MinCount = 1,
             MaxCount = 1,
+            SecurityGroupIds= ['sg-872f06ff'],
+            KeyName = "lab00key",
             TagSpecifications = tag_spec,
-            InstanceType = 't2.micro'
-        )
+            UserData = '''#!/bin/bash
+                yum -y update
+                yum -y install nginx
+                service nginx start
+                chkconfig nginx on
+                touch home/ec2-user/testFile''',
+            InstanceType = 't2.micro')
+        
+        print("An instance with ID", instance[0].id, "has been created.")
+        time.sleep(5)
+        instance[0].reload()
+        print("Public IP address:", instance[0].public_ip_address)
+        
+        cmd = "ssh -o StrictHostKeyChecking=no -i lab00key.pem ec2-user@" + instance[0].public_ip_address + " 'pwd'"
+        time.sleep(60)
+        (status, output) = subprocess.getstatusoutput(cmd)
+        print(output)
+        
     except Exception as error:
         print(error)
+    
     
 # Function to create a new bucket
 # TODO: create while loop incase bucket name is not unique
@@ -42,6 +62,7 @@ def create_bucket(name):
     except Exception as error:
         # prints out error to console for user
         print(error)
+
 
 # To upload an object to a specified bucket
 def put_bucket(bucket, file):
