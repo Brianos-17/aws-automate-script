@@ -132,14 +132,12 @@ def put_bucket(bucket, file):
     
     
 def main():
+    menu = open('menu.txt', 'rU')
+    print(menu.read())
     #(key_dir, inst_ip) = create_instance()
     #print("Checking nginx status...")
     #time.sleep(15)
     #run_check_webserver(key_dir, inst_ip)
-
-    #print("\n+----------------+")
-    #print("Creating a bucket")
-    #print("+----------------+")
     #time.sleep(5)
     #create_bucket()
     #put_bucket(None, None)

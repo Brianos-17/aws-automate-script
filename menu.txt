@@ -1,0 +1,11 @@
++--------------------------------+
+|           Main Menu            |
++--------------------------------+
+|                                |
+| 1 - Create Instance and Bucket |
+| 2 - Check Webserver            |
+| 3 - Create Bucket              |
+| 4 - Upload to Bucket           |
+|                                |
+| 0 - Exit                       |
++--------------------------------+
