@@ -22,3 +22,6 @@ def input_int(prompt):
             continue
         else:
             return int_input
+
+def clear():
+    print("\n"*20)

@@ -6,6 +6,7 @@ import time
 import subprocess
 import os
 from utils import input_int
+from utils import clear
 
 # Declaring ec2 variable
 ec2 = boto3.resource('ec2')
@@ -139,13 +140,6 @@ def main():
     menu = open('menu.txt', 'rU')
     print(menu.read())
     menu_in = input_int("> ")
-    #(key_dir, inst_ip) = create_instance()
-    #print("Checking nginx status...")
-    #time.sleep(15)
-    #run_check_webserver(key_dir, inst_ip)
-    #time.sleep(5)
-    #create_bucket()
-    #put_bucket(None, None)
     
 if __name__ == "__main__":
     main()
