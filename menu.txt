@@ -7,5 +7,4 @@
 | 3 - Create Bucket              |
 | 4 - Upload to Bucket           |
 |                                |
-| 0 - Exit                       |
 +--------------------------------+
