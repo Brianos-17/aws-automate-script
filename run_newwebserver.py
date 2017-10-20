@@ -10,11 +10,24 @@ import os
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
 
-key_dir = ""
-inst_ip = ""
+#Used by functions to give a clear heading to improve UX
+def add_header(title):
+    #total width of header = title length * 2
+    h_width = len(title)*2
+    #a variable that stores the text portion of the title and has it centered
+    h_title = str(title).center(h_width + 2, ' ')
+    #stores a simple decoration that will be printed before and after h_title
+    h_dec = "\n+%s+\n" % ("-"*h_width)
+    
+    # +--------------+
+    #      title
+    # +--------------+
+    print(h_dec + h_title + h_dec)
+
 
 # To create an instance and add a tag to it after creation
 def create_instance():
+    add_header("Creating Instance")
     key = "lab00key"
     key_dir = "~/comp_sci/dev-ops/lab00key.pem"
     # string to hold instance name
@@ -55,44 +68,59 @@ def create_instance():
         time.sleep(40)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
-        
-        add_check_webserver(key_dir, inst_ip)
+
+        scp_cmd = "scp -i " + key_dir + " check_webserver.py ec2-user@" + inst_ip + ":."
+        (status, output) = subprocess.getstatusoutput(scp_cmd)
+        if status > 0:
+            print("check_webserver.py was not added to instance")
+        else:
+            print(" Copied check_webserver.py to instance")
         
         return (key_dir, inst_ip)
         
     except Exception as error:
         print(error)
     
-
-def add_check_webserver(key_dir, inst_ip):
-    scp_cmd = "scp -i " + key_dir + " check_webserver.py ec2-user@" + inst_ip + ":."
-    (status, output) = subprocess.getstatusoutput(scp_cmd)
-    if status > 0:
-        print("check_webserver.py was not added to instance")
-    else:
-        print("check_webserver.py copied to instance")
-        
+# Function to run the check_webserver.py file that's stored in the EC2 instance
 def run_check_webserver(key_dir, inst_ip):
     run_check = 'ssh -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
     os.system(run_check)
     
 # Function to create a new bucket
-# TODO: create while loop incase bucket name is not unique
-def create_bucket(name):
-    # A try/except to prevent the script from crashing
-    try:
-        # Creates a bucket naming it with the 'name' param and setting its location to the Ireland servers
-        response = s3.create_bucket(Bucket=name, CreateBucketconfiguration={'LocationConstraint': 'eu-west-1'})
-        # prints out its result to console for user
-        print(response)
-    except Exception as error:
-        # prints out error to console for user
-        print(error)
+def create_bucket():
+    is_unique = False
+    # a while loop incase the user's bucket name in already taken or incorrect syntax
+    while not is_unique:
+        
+        #asks for user to input bucket name
+        print("\nBack to menu type: ex")
+        be_name = input("Enter Bucket name: ")
+        #if user types "ex" it'll exit out of the create_bucket() function
+        if be_name == "ex":
+            print("\nReturning to menu...")
+            time.sleep(3)
+            return
+            
+        # A try/except to prevent the script from crashing
+        try:
+            # Creates a bucket naming it with the 'name' param and setting its location to the Ireland servers
+            response = s3.create_bucket(Bucket=be_name, CreateBucketConfiguration={'LocationConstraint': 'eu-west-1'})
+            # prints out its result to console for user
+            print("\nBucket successfully created!")
+            print(response)
+            is_unique = True
+        except Exception as error:
+            # prints out error to console for user
+            print("ERROR: \n" + str(error))
 
 
 # To upload an object to a specified bucket
 def put_bucket(bucket, file):
+    add_header("Uploading file to bucket")
     # A try/except to prevent the script from crashing
+    if not bucket and not file:
+        print("No bucket or file")
+        
     try:
         # uploading file to the specified bucket
         response = s3.Object(bucket, file).put(Body=open(file, 'rb'))
@@ -104,10 +132,17 @@ def put_bucket(bucket, file):
     
     
 def main():
-    (key_dir, inst_ip) = create_instance()
-    print("Checking nginx status...")
-    time.sleep(15)
-    run_check_webserver(key_dir, inst_ip)
+    #(key_dir, inst_ip) = create_instance()
+    #print("Checking nginx status...")
+    #time.sleep(15)
+    #run_check_webserver(key_dir, inst_ip)
+
+    #print("\n+----------------+")
+    #print("Creating a bucket")
+    #print("+----------------+")
+    #time.sleep(5)
+    #create_bucket()
+    #put_bucket(None, None)
     
 if __name__ == "__main__":
     main()
