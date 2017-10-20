@@ -158,6 +158,7 @@ def main():
             continue
         elif menu_in == "2":
             print("running check webserver")
+            print("\nExiting...")
         elif menu_in == "ex":
             print("\nExiting...")
             time.sleep(3)
