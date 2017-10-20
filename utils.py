@@ -7,13 +7,10 @@ import time
 def input_int(prompt):
     while True:
         # asks user for input
-        print("Exit: ex")
         int_input = input(prompt)
         
         if int_input == "ex":
-            print("Returning to menu...")
-            time.sleep(3)
-            return
+            return int_input
         
         # checks to make sure user input is only a number
         # if not then it restarts loop

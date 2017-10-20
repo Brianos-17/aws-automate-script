@@ -29,7 +29,7 @@ def add_header(title):
 
 
 # To create an instance and add a tag to it after creation
-def create_instance():
+def new_instance():
     add_header("Creating Instance")
     key = "lab00key"
     key_dir = "~/comp_sci/dev-ops/lab00key.pem"
@@ -77,7 +77,7 @@ def create_instance():
         if status > 0:
             print("check_webserver.py was not added to instance")
         else:
-            print(" Copied check_webserver.py to instance")
+            print("Copied check_webserver.py to instance")
         
         return key_dir, inst_ip
         
@@ -87,12 +87,14 @@ def create_instance():
 
 # Function to run the check_webserver.py file that's stored in the EC2 instance
 def run_check_webserver(key_dir, inst_ip):
+    add_header("Checking Webserver")
     run_check = 'ssh -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
     os.system(run_check)
 
     
 # Function to create a new bucket
-def create_bucket():
+def new_bucket():
+    add_header("Creating Bucket")
     is_unique = False
     # a while loop incase the user's bucket name in already taken or incorrect syntax
     while not is_unique:
@@ -134,12 +136,33 @@ def put_bucket(bucket, file):
     except Exception as error:
         # prints out error to console for user
         print(error)
-    
+
     
 def main():
-    menu = open('menu.txt', 'rU')
-    print(menu.read())
-    menu_in = input_int("> ")
+    while True:
+        menu = open('menu.txt', 'rU')
+        print(menu.read())
+        menu_in = input_int("> ")
+    
+        # TODO: replace time.sleep() with correct boto3 wait function
+        if menu_in == "1":
+            clear()
+            (key_dir, inst_ip) = new_instance()
+            time.sleep(15)
+            run_check_webserver(key_dir, inst_ip)
+            time.sleep(5)
+            new_bucket()
+            print("\nReturning to menu...")
+            time.sleep(5)
+            clear()
+            continue
+        elif menu_in == "ex":
+            print("\nExiting...")
+            time.sleep(3)
+            print("Goodbye.")
+            break
+        else:
+            continue
     
 if __name__ == "__main__":
     main()
