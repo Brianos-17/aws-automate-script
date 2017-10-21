@@ -11,19 +11,18 @@ The web server will run on an EC2 instance and display static conent that is sto
 - To launch a new Amazon EC2 micro instance with a free tier Amazon Linux AMI
 - Using Boto3 API & Amazon credentials
 - Launches into appropriate security group
-- Accessible using SSH key
-- Create an S3 bucket and copy an image up to bucket
+- Accesses your instance using SSH key
+- Creates an S3 bucket and copy an image up to bucket
 - Configure nginx home page should then display this image 
 
 ##### User Data start-up script:
 
 - Used when creating instance
 - Apply required patches to OS
-- Install nginx web server
+- Installs nginx web server
+- Installs python35
 
 ##### check_webserver.py:
 
-- Program uses scp tp copy check_webserver.py script from your machine to the new instance and then execute
-- EG: Using ssh remote command execution
-- Connecting via ssh/scp requires public IP or DNS name of your instance
-- If it detects nginx isn't running then it should be started up
+- Copied and stored on instance when the instance is created
+- Checks is nginx is running and asks user if they wish to run/stop nginx
