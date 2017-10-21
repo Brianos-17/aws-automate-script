@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import boto3
 import time
 import subprocess
@@ -9,11 +8,10 @@ from utils import input_int
 from utils import clear
 from utils import add_header
 
-# Declaring ec2 variable
+# Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
-
-
+key_dir = "~/comp_sci/dev-ops/lab00key.pem"
 
 # To create an instance and add a tag to it after creation
 def new_instance():
@@ -127,20 +125,24 @@ def put_bucket(bucket, file):
 
 def list_instances():
     inst_list = []
-    menu_list = ""
-    add_header("Instance List")
     for inst in ec2.instances.all():
         inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
         
         inst_list.append(inst_tup)
-        
-    for inst in inst_list:
-        dec = "+%s+" % ("-"*40)
-        title = "|%s|%s|%s|%s|%s|" % ("No.", "Name", "ID", "Public IP", "State")
-        print(dec)
-        print(title)
-        print(dec)
 
+    max_w = 111
+    w = 25
+    title = "|%s|" % "Instance List".center(max_w)
+    dec = "+%s+" % ("-"*max_w)
+    col_names = "|%s|%s|%s|%s|%s|" % ("No.".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
+    
+    list_str = ""
+    for inst in inst_list:
+        index = str(inst_list.index(inst))
+        line = "|%s|%s|%s|%s|%s|" % (index.center(7),inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
+        list_str += "\n" + line
+
+    print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
 
 
 def main():
