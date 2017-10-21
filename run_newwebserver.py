@@ -64,7 +64,7 @@ def new_instance():
         else:
             print("Copied check_webserver.py to instance")
         
-        return key_dir, inst_ip
+        return inst_ip
         
     except Exception as error:
         print(error)
@@ -109,10 +109,10 @@ def new_bucket():
 # To upload an object to a specified bucket
 def put_bucket(bucket, file):
     add_header("Uploading file to bucket")
-    # A try/except to prevent the script from crashing
     if not bucket and not file:
         print("No bucket or file")
-        
+
+    # A try/except to prevent the script from crashing
     try:
         # uploading file to the specified bucket
         response = s3.Object(bucket, file).put(Body=open(file, 'rb'))
@@ -125,27 +125,42 @@ def put_bucket(bucket, file):
 
 def list_instances():
     inst_list = []
-    for inst in ec2.instances.all():
-        inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
-        
-        inst_list.append(inst_tup)
-
-    max_w = 111
-    w = 25
-    title = "|%s|" % "Instance List".center(max_w)
-    dec = "+%s+" % ("-"*max_w)
-    col_names = "|%s|%s|%s|%s|%s|" % ("No.".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
     
-    list_str = ""
-    for inst in inst_list:
-        index = str(inst_list.index(inst))
-        line = "|%s|%s|%s|%s|%s|" % (index.center(7),inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
-        list_str += "\n" + line
-
-    print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
+    for inst in ec2.instances.all():
+        if inst.state['Name'] == "running":
+            inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
+            inst_list.append(inst_tup)
+        else:
+            inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
+            inst_list.append(inst_tup)
+        
+    if len(inst_list) == 1:
+       return inst_list[0]
+    
+    elif len(inst_list) > 1:
+        max_w = 111
+        w = 25
+        
+        title = "|%s|" % "Instance List".center(max_w)
+        dec = "+%s+" % ("-"*max_w)
+        col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
+    
+        list_str = ""
+        for inst in inst_list:
+            index = str(inst_list.index(inst))
+            line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
+            list_str += "\n" + line
+    
+        print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
+        i = int(input_int("Select instance number(#):\n> "))
+        return inst_list[i]
+    else:
+       print("No instances detected!")
 
 
 def main():
+
+    key_dir = "~/comp_sci/dev-ops/lab00key.pem"
     while True:
         menu = open('menu.txt', 'rU')
         print(menu.read())
@@ -162,10 +177,24 @@ def main():
             print("\nReturning to menu...")
             time.sleep(5)
             clear()
-            
+        
+        # Option 2: It will display a list of user's instances (if more than 1)
+        # User will select an instance and run_check_webserver() will be called
         elif menu_in == "2":
             clear()
-            list_instances()
+            # function asks for user input and returns the selected instance
+            inst = list_instances()
+            
+            # Checks if at lease 1 instance was returned
+            if inst is not None:
+                # A try/except to prevent the script from crashing
+                try:
+                    # Will call function to ssh to instance and run the .py file stored on it
+                    run_check_webserver(key_dir, inst[2])
+                except Exception as error:
+                    # prints out error to console for user
+                    print(error)
+                
             input("\nPress Enter to return to menu...")
             print("Returning to menu...")
             time.sleep(3)
@@ -173,7 +202,7 @@ def main():
             
         elif menu_in == "4":
             clear()
-            (key_dir, inst_ip) = new_instance()
+            inst_ip = new_instance()
             time.sleep(15)
             run_check_webserver(key_dir, inst_ip)
             print("\nReturning to menu...")
