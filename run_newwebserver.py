@@ -7,25 +7,12 @@ import subprocess
 import os
 from utils import input_int
 from utils import clear
+from utils import add_header
 
 # Declaring ec2 variable
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
 
-
-# Used by functions to give a clear heading to improve UX
-def add_header(title):
-    # total width of header = title length * 2
-    h_width = len(title)*2
-    # a variable that stores the text portion of the title and has it centered
-    h_title = str(title).center(h_width + 2, ' ')
-    # stores a simple decoration that will be printed before and after h_title
-    h_dec = "\n+%s+\n" % ("-"*h_width)
-    
-    # +--------------+
-    #      title
-    # +--------------+
-    print(h_dec + h_title + h_dec)
 
 
 # To create an instance and add a tag to it after creation
@@ -139,10 +126,21 @@ def put_bucket(bucket, file):
 
 
 def list_instances():
-    inst_list = ec2.instances.all()
-    
+    inst_list = []
+    menu_list = ""
+    add_header("Instance List")
+    for inst in ec2.instances.all():
+        inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
+        
+        inst_list.append(inst_tup)
+        
     for inst in inst_list:
-        print(inst.id, inst.state, inst.public_ip_address)
+        dec = "+%s+" % ("-"*40)
+        title = "|%s|%s|%s|%s|%s|" % ("No.", "Name", "ID", "Public IP", "State")
+        print(dec)
+        print(title)
+        print(dec)
+
 
 
 def main():

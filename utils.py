@@ -22,3 +22,17 @@ def input_int(prompt):
 
 def clear():
     print("\n"*20)
+
+# Used by functions to give a clear heading to improve UX
+def add_header(title):
+    # total width of header = title length * 2
+    h_width = len(title)*2
+    # a variable that stores the text portion of the title and has it centered
+    h_title = str(title).center(h_width + 2, ' ')
+    # stores a simple decoration that will be printed before and after h_title
+    h_dec = "\n+%s+\n" % ("-"*h_width)
+    
+    # +--------------+
+    #      title
+    # +--------------+
+    print(h_dec + h_title + h_dec)
