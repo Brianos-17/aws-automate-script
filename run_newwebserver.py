@@ -137,7 +137,14 @@ def put_bucket(bucket, file):
         # prints out error to console for user
         print(error)
 
+
+def list_instances():
+    inst_list = ec2.instances.all()
     
+    for inst in inst_list:
+        print(inst.id, inst.state, inst.public_ip_address)
+
+
 def main():
     while True:
         menu = open('menu.txt', 'rU')
@@ -155,15 +162,37 @@ def main():
             print("\nReturning to menu...")
             time.sleep(5)
             clear()
-            continue
+            
         elif menu_in == "2":
-            print("running check webserver")
-            print("\nExiting...")
+            clear()
+            list_instances()
+            input("\nPress Enter to return to menu...")
+            print("Returning to menu...")
+            time.sleep(3)
+            clear()
+            
+        elif menu_in == "4":
+            clear()
+            (key_dir, inst_ip) = new_instance()
+            time.sleep(15)
+            run_check_webserver(key_dir, inst_ip)
+            print("\nReturning to menu...")
+            time.sleep(5)
+            clear()
+            
+        elif menu_in == "5":
+            clear()
+            new_bucket()
+            print("\nReturning to menu...")
+            time.sleep(5)
+            clear()
+            
         elif menu_in == "ex":
             print("\nExiting...")
             time.sleep(3)
             print("Goodbye.")
             break
+            
         else:
             continue
     
