@@ -107,13 +107,22 @@ def new_bucket():
 
 
 # To upload an object to a specified bucket
-def put_bucket(bucket, file):
+def put_bucket(bucket, path):
     # A try/except to prevent the script from crashing
     try:
-        # uploading file to the specified bucket
-        response = s3.Object(bucket, file).put(Body=open(file, 'rb'))
-        # prints out its result to console for user
-        print(response)
+        # checks if path is a directory
+        if os.path.isdir(path):
+            # if true it'll loop through the directory and upload each file within it
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    full_path  = os.path.join(root + '/' + file)
+                    s3.meta.client.upload_file(full_path, bucket, file)
+                
+        else:
+            response = s3.Object(bucket, path).put(Body=open(path, 'rb'))
+            # prints out its result to console for user
+            print(response)
+        
     except Exception as error:
         # prints out error to console for user
         print(error)
@@ -122,36 +131,36 @@ def put_bucket(bucket, file):
 def list_buckets():
     bucket_list = []
     
-    for inst in ec2.instances.all():
-        if inst.state['Name'] == "running":
-            inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
-            bucket_list.append(inst_tup)
-        else:
-            inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
-            bucket_list.append(inst_tup)
+    for bucket in s3.buckets.all():
+        bucket_list.append(bucket.name)
     
     if len(bucket_list) == 1:
-        return bucket_list[0]
+        print(bucket_list[0])
     
     elif len(bucket_list) > 1:
-        max_w = 111
+        max_w = 33
         w = 25
-        
-        title = "|%s|" % "Instance List".center(max_w)
+    
+        title = "|%s|" % "Bucket List".center(max_w)
         dec = "+%s+" % ("-"*max_w)
-        col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
-        
+        col_names = "|%s|%s|" % ("#".center(7), "Name".center(w))
+    
         list_str = ""
-        for inst in bucket_list:
-            index = str(bucket_list.index(inst))
-            line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
+        for bucket in bucket_list:
+            index = str(bucket_list.index(bucket))
+            line = "|%s|%s|" % (index.center(7), bucket.center(w))
             list_str += "\n" + line
-        
+    
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
-        i = int(input_int("Select instance number(#):\n> "))
-        return bucket_list[i]
+        i = int(input_int("Select bucket number(#):\n> "))
+        # checks user input
+        if i == "ex":
+            return
+        else:
+            return bucket_list[int(i)]
+    # if 0 buckets are found this is printed to console
     else:
-        print("No instances detected!")
+        print("No buckets detected!")
 
 
 def list_instances():
@@ -227,8 +236,9 @@ def main():
         menu = open('menu.txt', 'rU')
         print(menu.read())
         menu_in = input_int("> ")
-    
-        # Option 1: To create an instance and bucket
+        
+        #------------------------------------------------------------------------#
+        # Option 1: CREATE INSTANCE AND BUCKET
         # When instance is made, check_webserver.py is added and run
         if menu_in == "1":
             # create_instance() and run_check_webserver() functions
@@ -237,8 +247,9 @@ def main():
             # function creates new bucket
             new_bucket()
             return_menu()
-        
-        # Option 2: It will display a list of user's instances (if more than 1)
+            
+        #------------------------------------------------------------------------#
+        # Option 2: CHECK WEBSERVER
         # User will select an instance and run_check_webserver() will be called
         elif menu_in == "2":
             clear()
@@ -256,36 +267,50 @@ def main():
                 
             input("\nPress Enter to return to menu...")
             return_menu()
-        
+            
+        #------------------------------------------------------------------------#
+        # Option 3: UPLOAD TO BUCKET
+        # asks for path to file to be uploaded, has user pick bucket
         elif menu_in == "3":
             clear()
             add_header("Upload to Bucket")
             to_dir = input("Enter file path\n> ")
             if os.path.exists(to_dir):
-                list_buckets()
+                bucket = list_buckets()
+                if bucket is not None:
+                    # A try/except to prevent the script from crashing
+                    try:
+                        put_bucket(bucket, to_dir)
+                    except Exception as error:
+                        # prints out error to console for user
+                        print(error)
             else:
                 print("Invalid path input: " + to_dir)
             
             return_menu()
-        
+            
+        #------------------------------------------------------------------------#
+        # Option 4:
         # runs new_instance() without the new_bucket()
         elif menu_in == "4":
             new_instance()
             return_menu()
-
+            
+        #------------------------------------------------------------------------#
         # runs new_instance() without the new_bucket()
         elif menu_in == "5":
             clear()
             new_bucket()
             return_menu()
-        
+            
+        #------------------------------------------------------------------------#
         # exits and ends script
         elif menu_in == "ex":
             print("\nExiting...")
             time.sleep(3)
             print("Goodbye.")
             break
-            
+        #------------------------------------------------------------------------#
         else:
             continue
     
