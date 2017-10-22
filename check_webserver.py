@@ -14,7 +14,7 @@ def run_nginx():
         (status, output) = subprocess.getstatusoutput('sudo service nginx start')
         print(output)
     elif will_run == 'n':
-        print('nBoot ngin: Denied')
+        print('Boot nginx: Denied')
     # in case user inputs an invalid entry
     else:
         print('Invalid entry: ' + will_run)

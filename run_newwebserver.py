@@ -7,6 +7,7 @@ import os
 from utils import input_int
 from utils import clear
 from utils import add_header
+from utils import return_menu
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
@@ -124,6 +125,41 @@ def put_bucket(bucket, file):
         print(error)
 
 
+def list_buckets():
+    bucket_list = []
+    
+    for inst in ec2.instances.all():
+        if inst.state['Name'] == "running":
+            inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
+            bucket_list.append(inst_tup)
+        else:
+            inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
+            bucket_list.append(inst_tup)
+    
+    if len(bucket_list) == 1:
+        return bucket_list[0]
+    
+    elif len(bucket_list) > 1:
+        max_w = 111
+        w = 25
+        
+        title = "|%s|" % "Instance List".center(max_w)
+        dec = "+%s+" % ("-"*max_w)
+        col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
+        
+        list_str = ""
+        for inst in bucket_list:
+            index = str(bucket_list.index(inst))
+            line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
+            list_str += "\n" + line
+        
+        print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
+        i = int(input_int("Select instance number(#):\n> "))
+        return bucket_list[i]
+    else:
+        print("No instances detected!")
+
+
 def list_instances():
     inst_list = []
     
@@ -134,9 +170,9 @@ def list_instances():
         else:
             inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
             inst_list.append(inst_tup)
-        
+    
     if len(inst_list) == 1:
-       return inst_list[0]
+        return inst_list[0]
     
     elif len(inst_list) > 1:
         max_w = 111
@@ -145,18 +181,19 @@ def list_instances():
         title = "|%s|" % "Instance List".center(max_w)
         dec = "+%s+" % ("-"*max_w)
         col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
-    
+        
         list_str = ""
         for inst in inst_list:
             index = str(inst_list.index(inst))
             line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
             list_str += "\n" + line
-    
+        
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
         i = int(input_int("Select instance number(#):\n> "))
         return inst_list[i]
     else:
-       print("No instances detected!")
+        print("No instances detected!")
+
 
 # Creates new instance, copies check_webserver.py to instance and runs it remotely
 # function is created to avoid duplication as code is used in menu option 1 & 4
@@ -185,9 +222,7 @@ def main():
             time.sleep(5)
             # function creates new bucket
             new_bucket()
-            print("\nReturning to menu...")
-            time.sleep(5)
-            clear()
+            return_menu()
         
         # Option 2: It will display a list of user's instances (if more than 1)
         # User will select an instance and run_check_webserver() will be called
@@ -195,7 +230,6 @@ def main():
             clear()
             # function asks for user input and returns the selected instance
             inst = list_instances()
-            
             # Checks if at lease 1 instance was returned
             if inst is not None:
                 # A try/except to prevent the script from crashing
@@ -207,25 +241,29 @@ def main():
                     print(error)
                 
             input("\nPress Enter to return to menu...")
-            print("Returning to menu...")
-            time.sleep(3)
+            return_menu()
+        
+        elif menu_in == "3":
             clear()
+            add_header("Upload to Bucket")
+            to_dir = input("Enter file path\n> ")
+            #if os.path.exists(to_dir):
+             #   list_buckets()
+            print(os.path.exists(to_dir))
+            return_menu()
         
         # runs new_instance() without the new_bucket()
         elif menu_in == "4":
             new_instance()
-            print("\nReturning to menu...")
-            time.sleep(5)
-            clear()
+            return_menu()
 
         # runs new_instance() without the new_bucket()
         elif menu_in == "5":
             clear()
             new_bucket()
-            print("\nReturning to menu...")
-            time.sleep(5)
-            clear()
-            
+            return_menu()
+        
+        # exits and ends script
         elif menu_in == "ex":
             print("\nExiting...")
             time.sleep(3)
