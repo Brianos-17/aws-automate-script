@@ -13,8 +13,9 @@ ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
 key_dir = "~/comp_sci/dev-ops/lab00key.pem"
 
+
 # To create an instance and add a tag to it after creation
-def new_instance():
+def create_instance():
     add_header("Creating Instance")
     key = "lab00key"
     key_dir = "~/comp_sci/dev-ops/lab00key.pem"
@@ -157,6 +158,16 @@ def list_instances():
     else:
        print("No instances detected!")
 
+# Creates new instance, copies check_webserver.py to instance and runs it remotely
+# function is created to avoid duplication as code is used in menu option 1 & 4
+def new_instance():
+    clear()
+    # function creates a new instance and returns the public IP
+    inst_ip = create_instance()
+    time.sleep(15)
+    # .py file that is copied to instance is run remotely through ssh
+    run_check_webserver(key_dir, inst_ip)
+
 
 def main():
 
@@ -166,13 +177,13 @@ def main():
         print(menu.read())
         menu_in = input_int("> ")
     
-        # TODO: replace time.sleep() with correct boto3 wait function
+        # Option 1: To create an instance and bucket
+        # When instance is made, check_webserver.py is added and run
         if menu_in == "1":
-            clear()
-            (key_dir, inst_ip) = new_instance()
-            time.sleep(15)
-            run_check_webserver(key_dir, inst_ip)
+            # create_instance() and run_check_webserver() functions
+            new_instance()
             time.sleep(5)
+            # function creates new bucket
             new_bucket()
             print("\nReturning to menu...")
             time.sleep(5)
@@ -199,16 +210,15 @@ def main():
             print("Returning to menu...")
             time.sleep(3)
             clear()
-            
+        
+        # runs new_instance() without the new_bucket()
         elif menu_in == "4":
-            clear()
-            inst_ip = new_instance()
-            time.sleep(15)
-            run_check_webserver(key_dir, inst_ip)
+            new_instance()
             print("\nReturning to menu...")
             time.sleep(5)
             clear()
-            
+
+        # runs new_instance() without the new_bucket()
         elif menu_in == "5":
             clear()
             new_bucket()
