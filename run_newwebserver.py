@@ -110,6 +110,7 @@ def new_bucket():
 def put_bucket(bucket, path):
     # A try/except to prevent the script from crashing
     try:
+        print("\nUploading files...\n")
         # checks if path is a directory
         if os.path.isdir(path):
             # if true it'll loop through the directory and upload each file within it
@@ -117,11 +118,13 @@ def put_bucket(bucket, path):
                 for file in files:
                     full_path  = os.path.join(root + '/' + file)
                     s3.meta.client.upload_file(full_path, bucket, file)
-                
+                    print("Uploaded: " + file)
+        
+        # if path points to a specific file
         else:
-            response = s3.Object(bucket, path).put(Body=open(path, 'rb'))
+            s3.Object(bucket, path).put(Body=open(path, 'rb'))
             # prints out its result to console for user
-            print(response)
+            print("Uploaded: " + os.path.basename(path))
         
     except Exception as error:
         # prints out error to console for user
@@ -152,7 +155,7 @@ def list_buckets():
             list_str += "\n" + line
     
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
-        i = int(input_int("Select bucket number(#):\n> "))
+        i = input_int("Select bucket number(#):\n> ", len(bucket_list))
         # checks user input
         if i == "ex":
             return
@@ -206,7 +209,7 @@ def list_instances():
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
         # User is then asked for input
         print("\nExit: ex")
-        i = input_int("Select instance number(#):\n> ")
+        i = input_int("Select instance number(#):\n> ", len(inst_list))
         
         # checks user input
         if i == "ex":
@@ -235,7 +238,7 @@ def main():
     while True:
         menu = open('menu.txt', 'rU')
         print(menu.read())
-        menu_in = input_int("> ")
+        menu_in = input_int("> ", 6)
         
         #------------------------------------------------------------------------#
         # Option 1: CREATE INSTANCE AND BUCKET
@@ -281,6 +284,7 @@ def main():
                     # A try/except to prevent the script from crashing
                     try:
                         put_bucket(bucket, to_dir)
+                        input("\nPress enter to return to menu...")
                     except Exception as error:
                         # prints out error to console for user
                         print(error)

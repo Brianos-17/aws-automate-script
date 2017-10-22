@@ -4,7 +4,7 @@ import time
 
 # prompt: Message for user
 # high: the max number input can't go over
-def input_int(prompt):
+def input_int(prompt, max):
     while True:
         # asks user for input
         int_input = input(prompt)
@@ -14,7 +14,7 @@ def input_int(prompt):
         
         # checks to make sure user input is only a number
         # if not then it restarts loop
-        if not int_input.isdigit():
+        if not int_input.isdigit() or int(int_input) >= max:
             print('Invalid input: ' + str(int_input) + '\n')
             continue
         else:
