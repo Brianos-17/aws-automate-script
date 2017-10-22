@@ -91,8 +91,6 @@ def new_bucket():
         be_name = input("Enter Bucket name: ")
         # if user types "ex" it'll exit out of the create_bucket() function
         if be_name == "ex":
-            print("\nReturning to menu...")
-            time.sleep(3)
             return
             
         # A try/except to prevent the script from crashing
@@ -110,10 +108,6 @@ def new_bucket():
 
 # To upload an object to a specified bucket
 def put_bucket(bucket, file):
-    add_header("Uploading file to bucket")
-    if not bucket and not file:
-        print("No bucket or file")
-
     # A try/except to prevent the script from crashing
     try:
         # uploading file to the specified bucket
@@ -163,34 +157,54 @@ def list_buckets():
 def list_instances():
     inst_list = []
     
+    # For each loop to collect and store all instances of the user
     for inst in ec2.instances.all():
         if inst.state['Name'] == "running":
             inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
             inst_list.append(inst_tup)
+        # if instance is not running it sets the ip to a blank string to avoid null pointer errors
         else:
             inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
             inst_list.append(inst_tup)
     
+    #if there is only 1 instance it doesn't print out a list and will return it straight away
     if len(inst_list) == 1:
         return inst_list[0]
     
     elif len(inst_list) > 1:
+        # max width of list card that will display the list
+        # in a neat and structured format
         max_w = 111
+        # width of columns
         w = 25
-        
+        # header title
         title = "|%s|" % "Instance List".center(max_w)
+        # decoration will print similar to: +-----------------+
         dec = "+%s+" % ("-"*max_w)
+        # coloum headers are centered before added into the string
         col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
-        
+        #will store the instance info rows
         list_str = ""
+        # loops through the found instances
         for inst in inst_list:
+            # getting the index of instance
             index = str(inst_list.index(inst))
+            # similar to col_names above. centering before adding to string as character width will vary
             line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
+            # line variable is added to list_str
             list_str += "\n" + line
-        
+        # all the gathered and formatted data is then printed to console
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
-        i = int(input_int("Select instance number(#):\n> "))
-        return inst_list[i]
+        # User is then asked for input
+        print("\nExit: ex")
+        i = input_int("Select instance number(#):\n> ")
+        
+        # checks user input
+        if i == "ex":
+            return
+        else:
+            return inst_list[int(i)]
+    # if 0 instances are found this is printed to console
     else:
         print("No instances detected!")
 
@@ -247,9 +261,11 @@ def main():
             clear()
             add_header("Upload to Bucket")
             to_dir = input("Enter file path\n> ")
-            #if os.path.exists(to_dir):
-             #   list_buckets()
-            print(os.path.exists(to_dir))
+            if os.path.exists(to_dir):
+                list_buckets()
+            else:
+                print("Invalid path input: " + to_dir)
+            
             return_menu()
         
         # runs new_instance() without the new_bucket()
