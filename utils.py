@@ -20,6 +20,13 @@ def input_int(prompt):
         else:
             return int_input
 
+# A set of commands to avoid repeating code
+def return_menu():
+    print("\nReturning to menu...")
+    time.sleep(5)
+    clear()
+
+# Adds 20 blank lines to console to clear it of unnecessary text
 def clear():
     print("\n"*20)
 
