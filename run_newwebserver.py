@@ -8,25 +8,26 @@ from utils import input_int
 from utils import clear
 from utils import add_header
 from utils import return_menu
+from utils import get_sec_group
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
 key_dir = "~/comp_sci/dev-ops/lab00key.pem"
 
-
 # To create an instance and add a tag to it after creation
 def create_instance():
     add_header("Creating Instance")
     key = "lab00key"
-    key_dir = "~/comp_sci/dev-ops/lab00key.pem"
     # string to hold instance name
-    value = 'instance name here'
+    value = input("Enter instance tag name:\n> ")
     # Holds tag info
     tags = [{'Key': 'Name', 'Value': value}]
     # Used for TagSpecification field to name the instance
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
-
+    
+    port_list = ['80', '22']
+    sec_grp_id = get_sec_group(port_list)
     # A try/except to prevent the script from crashing
     try:
         # creation of instance
@@ -34,7 +35,7 @@ def create_instance():
             ImageId='ami-acd005d5',
             MinCount=1,
             MaxCount=1,
-            SecurityGroupIds=['sg-872f06ff'],
+            SecurityGroupIds=[sec_grp_id],
             KeyName=key,
             TagSpecifications=tag_spec,
             UserData='''#!/bin/bash
@@ -55,10 +56,10 @@ def create_instance():
         # ssh_cmd = "ssh -i %s ec2-user@%s '%s'"
         
         cmd = "ssh -o StrictHostKeyChecking=no -i" + key_dir + " ec2-user@" + inst_ip + " 'pwd'"
-        time.sleep(40)
+        time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
-
+        
         scp_cmd = "scp -i " + key_dir + " check_webserver.py ec2-user@" + inst_ip + ":."
         (status, output) = subprocess.getstatusoutput(scp_cmd)
         if status > 0:
@@ -82,10 +83,8 @@ def run_check_webserver(key_dir, inst_ip):
 # Function to create a new bucket
 def new_bucket():
     add_header("Creating Bucket")
-    is_unique = False
     # a while loop incase the user's bucket name in already taken or incorrect syntax
-    while not is_unique:
-        
+    while True:
         # asks for user to input bucket name
         print("\nBack to menu type: ex")
         be_name = input("Enter Bucket name: ")
@@ -100,7 +99,7 @@ def new_bucket():
             # prints out its result to console for user
             print("\nBucket successfully created!")
             print(response)
-            is_unique = True
+            return
         except Exception as error:
             # prints out error to console for user
             print("ERROR: \n" + str(error))
