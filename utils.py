@@ -54,6 +54,14 @@ def get_sec_group(port_list):
         if ports == port_join:
             return group[0]
 
+# makes a new security group that allow ports 80 and 22
+def make_sg():
+    # initial cration
+    new_sg = ec2.create_security_group(GroupName="auto-secure-group3",Description='automated secure group')
+    # adding of ports
+    new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=80,ToPort=80)
+    new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=22,ToPort=22)
+
 
 # A set of commands to avoid repeating code
 def return_menu():

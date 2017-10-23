@@ -26,6 +26,7 @@ def create_instance():
     # Used for TagSpecification field to name the instance
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
     
+    # gets the users security group that allows port 80 and 22
     port_list = ['80', '22']
     sec_grp_id = get_sec_group(port_list)
     # A try/except to prevent the script from crashing
