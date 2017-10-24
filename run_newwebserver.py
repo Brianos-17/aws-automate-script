@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from utils import *
-import boto3
-import time
-import subprocess
 import os
+import time
+import boto3
+import subprocess
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
@@ -50,7 +50,7 @@ def create_instance():
         # prompting user of successful instance creation
         print("Created an instance with ID:", instance[0].id)
         time.sleep(5)
-        # reloading instance list to ensure it has the newly created instance
+        # reloading instance to ensure it has the newly created instance
         instance[0].reload()
         # getting instance IP and printing to screen
         inst_ip = instance[0].public_ip_address
@@ -135,30 +135,38 @@ def put_bucket(bucket, path):
         print(error)
 
 
+# to list users available buckets
 def list_buckets():
     bucket_list = []
-    
+    # getting buckets and putting them into an array
     for bucket in s3.buckets.all():
+        # storing just the names
         bucket_list.append(bucket.name)
-    
+    # if only 1 available bucket then it'll return it
     if len(bucket_list) == 1:
-        print(bucket_list[0])
-    
+        return bucket_list[0]
+    # a menu will be printed to display and user will be prompted for input
     elif len(bucket_list) > 1:
         max_w = 33
         w = 25
-    
+        # header title
         title = "|%s|" % "Bucket List".center(max_w)
+        # decoration
         dec = "+%s+" % ("-"*max_w)
+        # names of columns to be displayed
         col_names = "|%s|%s|" % ("#".center(7), "Name".center(w))
     
         list_str = ""
+        # looping through list and printing the list index and bucket name to screen
         for bucket in bucket_list:
             index = str(bucket_list.index(bucket))
+            # centering the text before adding it to string
             line = "|%s|%s|" % (index.center(7), bucket.center(w))
             list_str += "\n" + line
-    
+            
+        # printing the formatted data
         print(dec + "\n" + title + "\n" + dec + "\n" + col_names + "\n" + dec + list_str + "\n" + dec)
+        # user imput
         i = input_int("Select bucket number(#):\n> ", len(bucket_list))
         # checks user input
         if i == "ex":
