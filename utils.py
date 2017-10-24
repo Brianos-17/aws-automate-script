@@ -88,6 +88,16 @@ def make_sec_group(port_list):
 # pulls path from key_dir.txt
 def get_key():
     # checking if a certain text file exists and will create one if there isn't
+    if valid_key():
+        key_dir = open('key_dir.txt', 'r+')
+        path = key_dir.read()
+        
+        name = os.path.basename(path)
+        name = name[:-4]
+        return (path, name)
+
+def valid_key():
+    # checking if a certain text file exists and will create one if there isn't
     if os.path.exists('key_dir.txt'):
         key_dir = open('key_dir.txt', 'r+')
     else:
@@ -97,9 +107,10 @@ def get_key():
     # If the text file is blank then it'll request a key path from the user before they can proceed
     if (len(path) == 0) or (not os.path.isfile(path)):
         # a while loop incase of invalid input
+        add_header("No key detected")
+        print("A key is required to use this service.")
+        print("Please input the path to your key:")
         while True:
-            print("\nNo key detected! A key is required to use this service:")
-            print("Please input a key path:")
             in_path = input("> ")
             # boolean to check if the path given leads to a file
             is_file = os.path.isfile(in_path)
@@ -114,18 +125,12 @@ def get_key():
                 key_dir = open('key_dir.txt', 'w')
                 # writing to file
                 key_dir.write(str(abs_path))
-                name = os.path.basename(abs_path)[:-4]
-                # after saving the path it'll return the absolute path and the keyname
-                return (abs_path, name)
+                return True
             #prompts user of invalid input and loops back
             else:
                 print("\nInvalid input: " + in_path)
-                
-    # if the txt file contains a path then it'll return the key name and path
     else:
-        name = os.path.basename(path)
-        name = name[:-4]
-        return (path, name)
+        return True
 
 # A set of commands to avoid repeating code
 def return_menu():

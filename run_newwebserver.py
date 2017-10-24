@@ -14,9 +14,6 @@ s3 = boto3.resource('s3')
 def create_instance():
     add_header("Creating Instance")
     
-    # function to get the key path and key name
-    (key_dir, key_nm) = get_key()
-    
     # requests user for instance name
     value = input("Enter instance tag name:\n> ")
     # Holds tag info
@@ -24,7 +21,12 @@ def create_instance():
     # Used for TagSpecification field to name the instance
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
     
+    # function to get the key path and key name
+    print('Getting Key...')
+    (key_dir, key_nm) = get_key()
+    
     # gets the users security group that allows port 80 and 22
+    print('Getting Security Group...')
     port_list = ['80', '22']
     sec_grp_id = get_sec_group(port_list)
     # A try/except to prevent the script from crashing
@@ -45,21 +47,23 @@ def create_instance():
                 chkconfig nginx on
                 touch home/ec2-user/testFile''',
             InstanceType='t2.micro')
-        
+        # prompting user of successful instance creation
         print("Created an instance with ID:", instance[0].id)
         time.sleep(5)
+        # reloading instance list to ensure it has the newly created instance
         instance[0].reload()
+        # getting instance IP and printing to screen
         inst_ip = instance[0].public_ip_address
         print("Public IP address:", inst_ip)
         
-        # ssh_cmd = "ssh -i %s ec2-user@%s '%s'"
-        
+        # waiting a minute before a test command is ran remotely
         cmd = "ssh -o StrictHostKeyChecking=no -i" + key_dir + " ec2-user@" + inst_ip + " 'pwd'"
         time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
-        
+        # copying check_webserver.py to instance
         scp_cmd = "scp -i " + key_dir + " check_webserver.py ec2-user@" + inst_ip + ":."
+        # prompting user if it was successful
         (status, output) = subprocess.getstatusoutput(scp_cmd)
         if status > 0:
             print("check_webserver.py was not added to instance")
@@ -233,7 +237,7 @@ def new_instance():
 
 
 def main():
-
+    valid_key()
     while True:
         menu = open('menu.txt', 'rU')
         print(menu.read())
