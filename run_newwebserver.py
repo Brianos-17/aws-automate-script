@@ -9,6 +9,7 @@ from utils import clear
 from utils import add_header
 from utils import return_menu
 from utils import get_sec_group
+from utils import get_key_dir
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')

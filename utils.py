@@ -85,6 +85,10 @@ def make_sec_group(port_list):
     return(output)
 
 
+def get_key():
+    key_dir = open('key_dir.txt', 'rU')
+    print(key_dir.read())
+
 # A set of commands to avoid repeating code
 def return_menu():
     print("\nReturning to menu...")
