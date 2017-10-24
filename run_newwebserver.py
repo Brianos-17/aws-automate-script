@@ -9,18 +9,17 @@ from utils import clear
 from utils import add_header
 from utils import return_menu
 from utils import get_sec_group
-from utils import get_key_dir
+from utils import get_key
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
-key_dir = "~/comp_sci/dev-ops/lab00key.pem"
 
 # To create an instance and add a tag to it after creation
 def create_instance():
     add_header("Creating Instance")
-    key = "lab00key"
-    # string to hold instance name
+    # function to get the key path and key name
+    (key_dir, key_nm) = get_key()
     value = input("Enter instance tag name:\n> ")
     # Holds tag info
     tags = [{'Key': 'Name', 'Value': value}]
@@ -38,7 +37,7 @@ def create_instance():
             MinCount=1,
             MaxCount=1,
             SecurityGroupIds=[sec_grp_id],
-            KeyName=key,
+            KeyName=key_nm,
             TagSpecifications=tag_spec,
             UserData='''#!/bin/bash
                 yum -y update
@@ -76,8 +75,10 @@ def create_instance():
     
 
 # Function to run the check_webserver.py file that's stored in the EC2 instance
-def run_check_webserver(key_dir, inst_ip):
+def run_check_webserver(inst_ip):
     add_header("Checking Webserver")
+    # function to get the key path and key name
+    (key_dir, key_nm) = get_key()
     run_check = 'ssh -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
     os.system(run_check)
 
@@ -230,12 +231,11 @@ def new_instance():
     inst_ip = create_instance()
     time.sleep(15)
     # .py file that is copied to instance is run remotely through ssh
-    run_check_webserver(key_dir, inst_ip)
+    run_check_webserver(inst_ip)
 
 
 def main():
 
-    key_dir = "~/comp_sci/dev-ops/lab00key.pem"
     while True:
         menu = open('menu.txt', 'rU')
         print(menu.read())
@@ -264,7 +264,7 @@ def main():
                 # A try/except to prevent the script from crashing
                 try:
                     # Will call function to ssh to instance and run the .py file stored on it
-                    run_check_webserver(key_dir, inst[2])
+                    run_check_webserver(inst[2])
                 except Exception as error:
                     # prints out error to console for user
                     print(error)

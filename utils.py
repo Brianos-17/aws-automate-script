@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 import time
 import boto3
 import subprocess
@@ -87,7 +88,10 @@ def make_sec_group(port_list):
 
 def get_key():
     key_dir = open('key_dir.txt', 'rU')
-    print(key_dir.read())
+    path = key_dir.read()
+    name = re.search(r'(\w+).pem', path)
+    name = name.group(0)[:-4]
+    return (path, name)
 
 # A set of commands to avoid repeating code
 def return_menu():
