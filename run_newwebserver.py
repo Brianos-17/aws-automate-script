@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
+from utils import *
 import boto3
 import time
 import subprocess
 import os
-from utils import input_int
-from utils import clear
-from utils import add_header
-from utils import return_menu
-from utils import get_sec_group
-from utils import get_key
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
@@ -18,8 +13,11 @@ s3 = boto3.resource('s3')
 # To create an instance and add a tag to it after creation
 def create_instance():
     add_header("Creating Instance")
+    
     # function to get the key path and key name
     (key_dir, key_nm) = get_key()
+    
+    # requests user for instance name
     value = input("Enter instance tag name:\n> ")
     # Holds tag info
     tags = [{'Key': 'Name', 'Value': value}]

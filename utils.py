@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import re
+import os
 import time
 import boto3
 import subprocess
@@ -85,13 +85,47 @@ def make_sec_group(port_list):
     # returns security group id
     return(output)
 
-
+# pulls path from key_dir.txt
 def get_key():
-    key_dir = open('key_dir.txt', 'rU')
+    # checking if a certain text file exists and will create one if there isn't
+    if os.path.exists('key_dir.txt'):
+        key_dir = open('key_dir.txt', 'r+')
+    else:
+        key_dir = open('key_dir.txt', 'w+')
+    # reading the text from key_dir.txt
     path = key_dir.read()
-    name = re.search(r'(\w+).pem', path)
-    name = name.group(0)[:-4]
-    return (path, name)
+    # If the text file is blank then it'll request a key path from the user before they can proceed
+    if (len(path) == 0) or (not os.path.isfile(path)):
+        # a while loop incase of invalid input
+        while True:
+            print("\nNo key detected! A key is required to use this service:")
+            print("Please input a key path:")
+            in_path = input("> ")
+            # boolean to check if the path given leads to a file
+            is_file = os.path.isfile(in_path)
+            # boolean to ensure the given file ends in .pem
+            is_key = os.path.basename(in_path)[-4:] == '.pem'
+            
+            # if both are true then it will add absolut path of the key to a text file
+            if is_file and is_key:
+                abs_path = os.path.abspath(in_path)
+                print("Key Found: " + abs_path)
+                # overwrites any data in the current text file
+                key_dir = open('key_dir.txt', 'w')
+                # writing to file
+                key_dir.write(str(abs_path))
+                name = os.path.basename(abs_path)[:-4]
+                # after saving the path it'll return the absolute path and the keyname
+                return (abs_path, name)
+            #prompts user of invalid input and loops back
+            else:
+                print("\nInvalid input: " + in_path)
+                
+    # if the txt file contains a path then it'll return the key name and path
+    else:
+        name = os.path.basename(path)
+        name = name[:-4]
+        return (path, name)
 
 # A set of commands to avoid repeating code
 def return_menu():
