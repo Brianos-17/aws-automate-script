@@ -59,19 +59,21 @@ def get_sec_group(port_list):
             break
     
     if len(grp_id) == 0:
-        return  make_sec_group()
+        print("No appropriate security group found, making a new one")
+        return  make_sec_group(port_list)
     else:
         return grp_id
 
 # makes a new security group that allow ports 80 and 22
-def make_sec_group():
+def make_sec_group(port_list):
     #assigning group name
     group_name = "auto-secure-group1"
     # initial creation of security group
     new_sg = ec2.create_security_group(GroupName=group_name,Description='automated secure group')
     # opening of ports 80 and 22
-    new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=80,ToPort=80)
-    new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=22,ToPort=22)
+    for port in port_list:
+        new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=int(port),ToPort=int(port))
+        
     # searches security groups for the one just created
     grp_cmd = 'aws ec2 describe-security-groups ' \
               '--filters Name=group-name,Values='+ group_name + ' ' \
