@@ -67,7 +67,9 @@ def get_sec_group(port_list):
 # makes a new security group that allow ports 80 and 22
 def make_sec_group(port_list):
     #assigning group name
-    group_name = "auto-secure-group1"
+
+    port_join = ''.join(sorted(port_list))
+    group_name = "auto-secure-group-" + port_join
     # initial creation of security group
     new_sg = ec2.create_security_group(GroupName=group_name,Description='automated secure group')
     # opening of ports 80 and 22
