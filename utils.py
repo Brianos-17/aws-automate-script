@@ -2,6 +2,8 @@
 
 import time
 import boto3
+import subprocess
+ec2 = boto3.resource('ec2')
 
 # prompt: Message for user
 # high: the max number input can't go over
@@ -47,20 +49,36 @@ def get_sec_group(port_list):
     
     # sorting and joining the port_list param
     port_join = ''.join(sorted(port_list))
+    grp_id = ''
     # loops through list of tuples and compares the ports to the port_list param
     for group in sec_list:
         ports = ''.join(sorted(group[1]))
         # if the ports match then the security group id will be returned
         if ports == port_join:
-            return group[0]
+            grp_id =  group[0]
+            break
+    
+    if len(grp_id) == 0:
+        return  make_sec_group()
+    else:
+        return grp_id
 
 # makes a new security group that allow ports 80 and 22
-def make_sg():
-    # initial cration
-    new_sg = ec2.create_security_group(GroupName="auto-secure-group3",Description='automated secure group')
-    # adding of ports
+def make_sec_group():
+    #assigning group name
+    group_name = "auto-secure-group1"
+    # initial creation of security group
+    new_sg = ec2.create_security_group(GroupName=group_name,Description='automated secure group')
+    # opening of ports 80 and 22
     new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=80,ToPort=80)
     new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=22,ToPort=22)
+    # searches security groups for the one just created
+    grp_cmd = 'aws ec2 describe-security-groups ' \
+              '--filters Name=group-name,Values='+ group_name + ' ' \
+              '--query "SecurityGroups[*].[GroupId]"'
+    (status, output) = subprocess.getstatusoutput(grp_cmd)
+    # returns security group id
+    return(output)
 
 
 # A set of commands to avoid repeating code
