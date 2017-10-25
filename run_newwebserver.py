@@ -82,9 +82,9 @@ def create_instance():
 # Function to run the check_webserver.py file that's stored in the EC2 instance
 def run_check_webserver(inst_ip):
     add_header("Checking Webserver")
-    # function to get the key path and key name
+    # function to get the key path and key name -t -o StrictHostKeyChecking=no
     (key_dir, key_nm) = get_key()
-    run_check = 'ssh -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
+    run_check = 'ssh  -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
     os.system(run_check)
 
     
@@ -248,16 +248,24 @@ def list_instances():
     # For each loop to collect and store all instances of the user
     for inst in ec2.instances.all():
         if inst.state['Name'] == "running":
-            inst_tup = (inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name'])
+            inst_tup = [inst.tags[0]['Value'], inst.id, inst.public_ip_address, inst.state['Name']]
             inst_list.append(inst_tup)
         # if instance is not running it sets the ip to a blank string to avoid null pointer errors
         else:
-            inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
+            inst_tup = [inst.tags[0]['Value'], inst.id, "", inst.state['Name']]
             inst_list.append(inst_tup)
     
     # if there is only 1 instance it doesn't print out a list and will return it straight away
-    if len(inst_list) == 1:
-        return inst_list[0]
+    if len(inst_list) == 1 :
+        inst = inst_list[0]
+        if not inst[3] == 'running':
+            instance = ec2.Instance(inst[1])
+            instance.start()
+            print("Booting up instance...")
+            time.sleep(60)
+            instance.reload()
+            inst[2] = instance.public_ip_address
+        return inst
     
     elif len(inst_list) > 1:
         # max width of list card that will display the list
@@ -291,7 +299,17 @@ def list_instances():
         if i == "ex":
             return
         else:
-            return inst_list[int(i)]
+            inst = inst_list[int(i)]
+            
+            if not inst[3] == 'running':
+                instance = ec2.Instance(inst[1])
+                instance.start()
+                print("Booting up instance...")
+                time.sleep(60)
+                instance.reload()
+                inst[2] = instance.public_ip_address
+                
+            return inst
     # if 0 instances are found this is printed to console
     else:
         print("No instances detected!")
