@@ -265,7 +265,12 @@ def list_instances():
             time.sleep(60)
             instance.reload()
             inst[2] = instance.public_ip_address
-        return inst
+
+        elif inst[3] == 'running':
+            return inst
+        else:
+            print("No instances detected!")
+            return
     
     elif len(inst_list) > 1:
         # max width of list card that will display the list
@@ -301,7 +306,7 @@ def list_instances():
         else:
             inst = inst_list[int(i)]
             
-            if not inst[3] == 'running':
+            if inst[3] == 'stopped':
                 instance = ec2.Instance(inst[1])
                 instance.start()
                 print("Booting up instance...")
@@ -309,7 +314,11 @@ def list_instances():
                 instance.reload()
                 inst[2] = instance.public_ip_address
                 
-            return inst
+            elif inst[3] == 'running':
+                return inst
+            else:
+                print("No instances detected!")
+                return
     # if 0 instances are found this is printed to console
     else:
         print("No instances detected!")
