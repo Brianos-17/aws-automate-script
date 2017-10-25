@@ -4,11 +4,13 @@ from utils import *
 import os
 import time
 import boto3
+import json
 import subprocess
 
 # Declaring ec2 and s3 variable
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource('s3')
+
 
 # To create an instance and add a tag to it after creation
 def create_instance():
@@ -92,18 +94,39 @@ def new_bucket():
     while True:
         # asks for user to input bucket name
         print("\nBack to menu type: ex")
-        be_name = input("Enter Bucket name: ")
+        b_name = input("Enter Bucket name: ")
         # if user types "ex" it'll exit out of the create_bucket() function
-        if be_name == "ex":
+        if b_name == "ex":
             return
             
         # A try/except to prevent the script from crashing
         try:
             # Creates a bucket and setting its location to the Ireland servers
-            response = s3.create_bucket(Bucket=be_name, CreateBucketConfiguration={'LocationConstraint': 'eu-west-1'})
+            response = s3.create_bucket(Bucket=b_name, CreateBucketConfiguration={'LocationConstraint': 'eu-west-1'})
             # prints out its result to console for user
             print("\nBucket successfully created!")
             print(response)
+            
+            # to make the files readable by a link then a policy permission must be added
+            # this policy allows read-only permissions from anonymous clients
+            print("\nAdding Policy...")
+            policy = {
+                "Version":"2012-10-17",
+                "Statement":[
+                    {
+                        "Sid":"AddPerm",
+                        "Effect":"Allow",
+                        "Principal": "*",
+                        "Action":["s3:GetObject"],
+                        "Resource":["arn:aws:s3:::" + b_name + "/*"]
+                    }
+                ]
+            }
+            # converting to a json format
+            policy = json.dumps(policy)
+            # ading policy to newly created bucket
+            boto3.client('s3').put_bucket_policy(Bucket= b_name, Policy=policy)
+            print("Read-Only Policies Added")
             return
         except Exception as error:
             # prints out error to console for user
@@ -120,7 +143,7 @@ def put_bucket(bucket, path):
             # if true it'll loop through the directory and upload each file within it
             for root, dirs, files in os.walk(path):
                 for file in files:
-                    full_path  = os.path.join(root + '/' + file)
+                    full_path = os.path.join(root + '/' + file)
                     s3.meta.client.upload_file(full_path, bucket, file)
                     print("Uploaded: " + file)
         
@@ -133,7 +156,7 @@ def put_bucket(bucket, path):
     except Exception as error:
         # prints out error to console for user
         print(error)
-
+        
 
 # to list users available buckets
 def list_buckets():
@@ -191,7 +214,7 @@ def list_instances():
             inst_tup = (inst.tags[0]['Value'], inst.id, "", inst.state['Name'])
             inst_list.append(inst_tup)
     
-    #if there is only 1 instance it doesn't print out a list and will return it straight away
+    # if there is only 1 instance it doesn't print out a list and will return it straight away
     if len(inst_list) == 1:
         return inst_list[0]
     
@@ -207,13 +230,13 @@ def list_instances():
         dec = "+%s+" % ("-"*max_w)
         # coloum headers are centered before added into the string
         col_names = "|%s|%s|%s|%s|%s|" % ("#".center(7), "Name".center(w), "ID".center(w), "Public IP".center(w), "State".center(w))
-        #will store the instance info rows
+        # will store the instance info rows
         list_str = ""
         # loops through the found instances
         for inst in inst_list:
             # getting the index of instance
             index = str(inst_list.index(inst))
-            # similar to col_names above. centering before adding to string as character width will vary
+            # centering before adding to string as character width will vary
             line = "|%s|%s|%s|%s|%s|" % (index.center(7), inst[0].center(w), inst[1].center(w), inst[2].center(w), inst[3].center(w))
             # line variable is added to list_str
             list_str += "\n" + line
