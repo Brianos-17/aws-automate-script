@@ -155,9 +155,21 @@ def put_bucket(bucket, path):
             # prints out its result to console for user
             print("Uploaded: " + file)
             
-            to_put = input("Do you wish to add this to nginx index page?(yes/n)")
-            if to_put == 'yes':
-                url = "https://s3-eu-west-1.amazonaws.com/" + "test-bucket-ng-ict-2017-perm33/to_upload/roll_safe.png"
+            while True:
+                # when a user uploads a single file it'll ask them if they wish to add it to the index page
+                to_put = input("Do you wish to add this to nginx index page?(yes/n)\n> ")
+                # asks user if they wish to add the image to the index.html page
+                if to_put == 'yes':
+                    # compiling url link to file
+                    url = "https://s3-eu-west-1.amazonaws.com/" + bucket + "/" + file
+                    # runs the function that will add
+                    put_nginx(url)
+                    return
+                elif to_put == 'n':
+                    print('Request denied')
+                    return
+                else:
+                    print('Invalid input: ' + to_put)
         
     except Exception as error:
         # prints out error to console for user
@@ -171,11 +183,20 @@ def put_nginx(url):
     # getting ip of instance
     inst_ip = list_instances()[2]
     
-    # putting echo command into a string
-    cmd ="'echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
-    index_cmd = 'ssh -i' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
-    (status, output) = subprocess.getstatusoutput(index_cmd)
-    print(status)
+    try:
+        # putting echo command into a string
+        cmd ="'echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
+        index_cmd = 'ssh -i' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
+        (status, output) = subprocess.getstatusoutput(index_cmd)
+        if status == 0:
+            print("Image successfully added to index.html")
+        else:
+            print("Failed to add image to index.html")
+            
+    except Exception as error:
+        # prints out error to console for user
+        print(error)
+    
 
 
 # to list users available buckets
