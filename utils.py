@@ -6,9 +6,9 @@ import boto3
 import subprocess
 ec2 = boto3.resource('ec2')
 
-# prompt: Message for user
-# high: the max number input can't go over
-def input_int(prompt, max):
+
+# prompt: Message for user high: the max number input can't go over
+def input_int(prompt, max_in):
     while True:
         # asks user for input
         int_input = input(prompt)
@@ -18,7 +18,7 @@ def input_int(prompt, max):
         
         # checks to make sure user input is only a number
         # if not then it restarts loop
-        if not int_input.isdigit() or int(int_input) >= max:
+        if not int_input.isdigit() or int(int_input) >= max_in:
             print('Invalid input: ' + str(int_input) + '\n')
             continue
         else:
@@ -39,7 +39,7 @@ def get_sec_group(port_list):
         perms = []
         # loop through available port numbers within the security group
         for port in ip_perms:
-            #Checking is there is a FromPort field as some dont
+            # Checking is there is a FromPort field as some dont
             if 'FromPort' in port:
                 # Adds port to list
                 perms.append(str(port['FromPort']))
@@ -56,34 +56,35 @@ def get_sec_group(port_list):
         ports = ''.join(sorted(group[1]))
         # if the ports match then the security group id will be returned
         if ports == port_join:
-            grp_id =  group[0]
+            grp_id = group[0]
             break
     
     if len(grp_id) == 0:
         print("No appropriate security group found, making a new one")
-        return  make_sec_group(port_list)
+        return make_sec_group(port_list)
     else:
         return grp_id
 
+
 # makes a new security group that allow ports 80 and 22
 def make_sec_group(port_list):
-    #assigning group name
-
+    # assigning group name
     port_join = ''.join(sorted(port_list))
     group_name = "auto-secure-group-" + port_join
     # initial creation of security group
-    new_sg = ec2.create_security_group(GroupName=group_name,Description='automated secure group')
+    new_sg = ec2.create_security_group(GroupName=group_name, Description='automated secure group')
     # opening of ports 80 and 22
     for port in port_list:
-        new_sg.authorize_ingress(IpProtocol="tcp",CidrIp="0.0.0.0/0",FromPort=int(port),ToPort=int(port))
+        new_sg.authorize_ingress(IpProtocol="tcp", CidrIp="0.0.0.0/0", FromPort=int(port), ToPort=int(port))
         
     # searches security groups for the one just created
     grp_cmd = 'aws ec2 describe-security-groups ' \
-              '--filters Name=group-name,Values='+ group_name + ' ' \
+              '--filters Name=group-name,Values=' + group_name + ' ' \
               '--query "SecurityGroups[*].[GroupId]"'
     (status, output) = subprocess.getstatusoutput(grp_cmd)
     # returns security group id
-    return(output)
+    return output
+
 
 # pulls path from key_dir.txt
 def get_key():
@@ -94,7 +95,8 @@ def get_key():
         
         name = os.path.basename(path)
         name = name[:-4]
-        return (path, name)
+        return path, name
+
 
 def valid_key():
     # checking if a certain text file exists and will create one if there isn't
@@ -126,11 +128,12 @@ def valid_key():
                 # writing to file
                 key_dir.write(str(abs_path))
                 return True
-            #prompts user of invalid input and loops back
+            # prompts user of invalid input and loops back
             else:
                 print("\nInvalid input: " + in_path)
     else:
         return True
+
 
 # A set of commands to avoid repeating code
 def return_menu():
@@ -138,9 +141,11 @@ def return_menu():
     time.sleep(5)
     clear()
 
+
 # Adds 20 blank lines to console to clear it of unnecessary text
 def clear():
     print("\n"*20)
+
 
 # Used by functions to give a clear heading to improve UX
 def add_header(title):

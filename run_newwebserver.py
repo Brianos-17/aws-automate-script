@@ -58,8 +58,9 @@ def create_instance():
         inst_ip = instance[0].public_ip_address
         print("Public IP address:", inst_ip)
         
-        # waiting a minute before a test command is ran remotely
-        cmd = "ssh -o StrictHostKeyChecking=no -i" + key_dir + " ec2-user@" + inst_ip + " 'pwd'"
+        # waiting a minute before a command is ran remotely
+        # command allows for writing permissions to index.html
+        cmd = "ssh -o StrictHostKeyChecking=no -i" + key_dir + " ec2-user@" + inst_ip + " 'sudo chmod +x /usr/share/nginx/html/index.html'"
         time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
@@ -138,6 +139,7 @@ def put_bucket(bucket, path):
     # A try/except to prevent the script from crashing
     try:
         print("\nUploading files...\n")
+        full_path = ''
         # checks if path is a directory
         if os.path.isdir(path):
             # if true it'll loop through the directory and upload each file within it
@@ -152,11 +154,29 @@ def put_bucket(bucket, path):
             s3.Object(bucket, path).put(Body=open(path, 'rb'))
             # prints out its result to console for user
             print("Uploaded: " + os.path.basename(path))
+            
+            to_put = input("Do you wish to add this to nginx index page?(yes/n)")
+            if to_put == 'yes':
+                url = "https://s3-eu-west-1.amazonaws.com/" + "test-bucket-ng-ict-2017-perm33/to_upload/roll_safe.png"
         
     except Exception as error:
         # prints out error to console for user
         print(error)
-        
+
+
+# to upload an image to the nginx home page
+def put_nginx(url):
+    # getting key path for future ssh command
+    (key_dir, key_nm) = get_key()
+    # getting ip of instance
+    inst_ip = list_instances()[2]
+    
+    # putting echo command into a string
+    cmd ="'echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
+    index_cmd = 'ssh -i' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
+    (status, output) = subprocess.getstatusoutput(index_cmd)
+    print(status)
+
 
 # to list users available buckets
 def list_buckets():
@@ -312,6 +332,7 @@ def main():
             clear()
             add_header("Upload to Bucket")
             to_dir = input("Enter file path\n> ")
+            to_dir = os.path.abspath(to_dir)
             if os.path.exists(to_dir):
                 bucket = list_buckets()
                 if bucket is not None:
