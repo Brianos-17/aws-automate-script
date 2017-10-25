@@ -139,7 +139,6 @@ def put_bucket(bucket, path):
     # A try/except to prevent the script from crashing
     try:
         print("\nUploading files...\n")
-        full_path = ''
         # checks if path is a directory
         if os.path.isdir(path):
             # if true it'll loop through the directory and upload each file within it
@@ -151,9 +150,10 @@ def put_bucket(bucket, path):
         
         # if path points to a specific file
         else:
-            s3.Object(bucket, path).put(Body=open(path, 'rb'))
+            file = os.path.basename(path)
+            s3.meta.client.upload_file(path, bucket, file)
             # prints out its result to console for user
-            print("Uploaded: " + os.path.basename(path))
+            print("Uploaded: " + file)
             
             to_put = input("Do you wish to add this to nginx index page?(yes/n)")
             if to_put == 'yes':
@@ -332,7 +332,8 @@ def main():
             clear()
             add_header("Upload to Bucket")
             to_dir = input("Enter file path\n> ")
-            to_dir = os.path.abspath(to_dir)
+            if not os.path.isabs(to_dir):
+                to_dir = os.path.abspath(to_dir)
             if os.path.exists(to_dir):
                 bucket = list_buckets()
                 if bucket is not None:
