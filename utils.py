@@ -6,8 +6,9 @@ import boto3
 import subprocess
 ec2 = boto3.resource('ec2')
 
-
-# prompt: Message for user high: the max number input can't go over
+# used to check if what the user input is a valid integer
+# prompt: Message for user
+# high: the max number input can't go over
 def input_int(prompt, max_in):
     while True:
         # asks user for input
@@ -26,29 +27,45 @@ def input_int(prompt, max_in):
 
 
 # A function to search user's security groups
-# It returns the ID of the group with the appropriate port numbers
+# It returns the ID of the group with port numbers matching in param port_list
+# This function loops through all of the user's security groups, it runs the first loop
+# to check if the Sec Group has any open ports AND belongs to the Default VPC
+# There is then a second loop that checks for a Sec Group that has ports 80 and 22 open ONLY
 def get_sec_group(port_list):
     sec_list = []
     ec2_client = boto3.client('ec2')
-    sec_grps = ec2_client.describe_security_groups()
+    sec_grps = ec2_client.describe_security_groups()['SecurityGroups']
+    default_vpc_id = ''
+
+    # searching for user's default VPC id
+    for vpc in ec2.vpcs.all():
+        if vpc.is_default:
+            # puts the VPC's ID into a variable to be used later
+            default_vpc_id = vpc.vpc_id
+            print("Default VPC ID: " + default_vpc_id)
+            break
     
-    # Loops through the user's security groups
-    for group in sec_grps['SecurityGroups']:
-        
-        ip_perms = group['IpPermissions']
-        perms = []
-        # loop through available port numbers within the security group
-        for port in ip_perms:
-            # Checking is there is a FromPort field as some dont
-            if 'FromPort' in port:
-                # Adds port to list
-                perms.append(str(port['FromPort']))
-        # tuple variable
-        sec_tup = (group['GroupId'], perms)
-        # adding tuple to list
-        sec_list.append(sec_tup)
-    
-    # sorting and joining the port_list param
+    # This loops though the user's security groups and stores the Security Group's ID and their open Ports into a list
+    # Each security group can have a varying amount of open ports, one could have 0 open ports, another could have ports 22, 25, 80
+    # This loop filters out all security groups that either dont have ANY ports open AND if they belong to the Defualt VPC
+    for group in sec_grps:
+        # checks if the security group is in the default VPC group
+        if group['VpcId'] == default_vpc_id:
+            open_port_list = []
+            # loop through available port numbers within the security group
+            for port in group['IpPermissions']:
+                # Checking is there is a FromPort field as some dont
+                if 'FromPort' in port:
+                    # Adds port to list
+                    open_port_list.append(str(port['FromPort']))
+            # tuple variable
+            sec_tup = (group['GroupId'], open_port_list)
+            # adding tuple to list
+            sec_list.append(sec_tup)
+
+    # This portion loops through 'sec_list' and searched for a Security Group that has ONLY port 22 and 80 open
+    # This project only requires the use of port 22 and 80 so decided to keep this feature static
+    # If none are found then make_sec_group() is run and will make the required security group
     port_join = ''.join(sorted(port_list))
     grp_id = ''
     # loops through list of tuples and compares the ports to the port_list param
@@ -59,6 +76,8 @@ def get_sec_group(port_list):
             grp_id = group[0]
             break
     
+    # this checks if an appropriate security group was found
+    # if none are found then one is made
     if len(grp_id) == 0:
         print("No appropriate security group found, making a new one")
         return make_sec_group(port_list)
@@ -66,24 +85,33 @@ def get_sec_group(port_list):
         return grp_id
 
 
-# makes a new security group that allow ports 80 and 22
+# makes a new security group that open the ports passed in from param port_list
+# port_list is currently [80, 22]
 def make_sec_group(port_list):
+    print("So security group with just ports 80 and 22 were found.")
+    print("Making an appropriate one now...")
     # assigning group name
     port_join = ''.join(sorted(port_list))
     group_name = "auto-secure-group-" + port_join
     # initial creation of security group
     new_sg = ec2.create_security_group(GroupName=group_name, Description='automated secure group')
-    # opening of ports 80 and 22
+    # the for loop goes through the ports from param port_list and will open them
     for port in port_list:
         new_sg.authorize_ingress(IpProtocol="tcp", CidrIp="0.0.0.0/0", FromPort=int(port), ToPort=int(port))
         
-    # searches security groups for the one just created
+    # searches the ID of the security group just created
+    # it uses 'group_name' as a filter
     grp_cmd = 'aws ec2 describe-security-groups ' \
               '--filters Name=group-name,Values=' + group_name + ' ' \
               '--query "SecurityGroups[*].[GroupId]"'
     (status, output) = subprocess.getstatusoutput(grp_cmd)
-    # returns security group id
-    return output
+    # returns id of newly created security group
+    if status == 0:
+        print("Created Security Group: " +  group_name)
+        return output
+    else:
+        print("Failed to create security group: " + group_name)
+        print(output)
 
 
 # pulls path from key_dir.txt
@@ -98,6 +126,11 @@ def get_key():
         return path, name
 
 
+# this function seaches for a file called key_dir.txt which is used to store the absolute path of the user's .pem file
+# it checks that the .txt file exists and then opens the file to read it
+# if the .txt isn't found then one is created
+# if the .txt file is blank or the stored path doesn't exist then it will ask the user to input a path
+# the user cant escape from this loop until they input a valid path as the key file is required
 def valid_key():
     # checking if a certain text file exists and will create one if there isn't
     if os.path.exists('key_dir.txt'):
@@ -144,7 +177,7 @@ def return_menu():
 
 # Adds 20 blank lines to console to clear it of unnecessary text
 def clear():
-    print("\n"*20)
+    print("\n"*50)
 
 
 # Used by functions to give a clear heading to improve UX
@@ -156,6 +189,7 @@ def add_header(title):
     # stores a simple decoration that will be printed before and after h_title
     h_dec = "\n+%s+\n" % ("-"*h_width)
     
+    # Result:
     # +--------------+
     #      title
     # +--------------+

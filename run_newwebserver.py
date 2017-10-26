@@ -84,7 +84,7 @@ def run_check_webserver(inst_ip):
     add_header("Checking Webserver")
     # function to get the key path and key name -t -o StrictHostKeyChecking=no
     (key_dir, key_nm) = get_key()
-    run_check = 'ssh -t -o StrictHostKeyChecking=no -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
+    run_check = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'python3 check_webserver.py'"
     os.system(run_check)
 
     
@@ -306,12 +306,14 @@ def list_instances():
             return
         else:
             inst = inst_list[int(i)]
-            
+            # runs a check to see if instance is stopped
+            # if instance is stopped then it'll boot it up
             if inst[3] == 'stopped':
+                # inst[1] = instance id
                 instance = ec2.Instance(inst[1])
                 instance.start()
                 print("Booting up instance...")
-                time.sleep(60)
+                time.sleep(30)
                 instance.reload()
                 inst[2] = instance.public_ip_address
                 return inst
