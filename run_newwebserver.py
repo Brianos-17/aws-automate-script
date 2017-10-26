@@ -82,7 +82,7 @@ def create_instance():
 # Function to run the check_webserver.py file that's stored in the EC2 instance
 def run_check_webserver(inst_ip):
     add_header("Checking Webserver")
-    # function to get the key path and key name -t -o StrictHostKeyChecking=no
+    # function to get the key path and key name
     (key_dir, key_nm) = get_key()
     run_check = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'python3 check_webserver.py'"
     os.system(run_check)
@@ -383,6 +383,7 @@ def main():
         elif menu_in == "3":
             clear()
             add_header("Upload to Bucket")
+            print("Note: If giving an absolute path use /home/[user]/to/dir instead of /~/to/dir/")
             to_dir = input("Enter file path\n> ")
             if not os.path.isabs(to_dir):
                 to_dir = os.path.abspath(to_dir)

@@ -145,6 +145,7 @@ def valid_key():
         add_header("No key detected")
         print("A key is required to use this service.")
         print("Please input the path to your key:")
+        print("Note: If giving an absolute path use /home/[user]/to/dir instead of /~/to/dir/")
         while True:
             in_path = input("> ")
             # boolean to check if the path given leads to a file
