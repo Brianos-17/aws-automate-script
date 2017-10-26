@@ -60,7 +60,7 @@ def create_instance():
         
         # waiting a minute before a command is ran remotely
         # command allows for writing permissions to index.html
-        cmd = "ssh -o StrictHostKeyChecking=no -i" + key_dir + " ec2-user@" + inst_ip + " 'sudo chmod +x /usr/share/nginx/html/index.html'"
+        cmd = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'sudo chmod +x /usr/share/nginx/html/index.html'"
         time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
@@ -84,7 +84,7 @@ def run_check_webserver(inst_ip):
     add_header("Checking Webserver")
     # function to get the key path and key name -t -o StrictHostKeyChecking=no
     (key_dir, key_nm) = get_key()
-    run_check = 'ssh  -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
+    run_check = 'ssh -t -o StrictHostKeyChecking=no -i ' + key_dir + ' ec2-user@' + inst_ip + ' python3 check_webserver.py'
     os.system(run_check)
 
     
@@ -186,7 +186,7 @@ def put_nginx(url):
     try:
         # putting echo command into a string
         cmd ="'echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
-        index_cmd = 'ssh -i' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
+        index_cmd = 'ssh -t -o StrictHostKeyChecking=no -i ' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
         (status, output) = subprocess.getstatusoutput(index_cmd)
         if status == 0:
             print("Image successfully added to index.html")
@@ -265,6 +265,7 @@ def list_instances():
             time.sleep(60)
             instance.reload()
             inst[2] = instance.public_ip_address
+            return inst
 
         elif inst[3] == 'running':
             return inst
@@ -313,6 +314,7 @@ def list_instances():
                 time.sleep(60)
                 instance.reload()
                 inst[2] = instance.public_ip_address
+                return inst
                 
             elif inst[3] == 'running':
                 return inst
