@@ -24,13 +24,18 @@ def create_instance():
     tag_spec = [{'ResourceType': 'instance', 'Tags': tags}]
     
     # function to get the key path and key name
-    print('Getting Key...')
     (key_dir, key_nm) = get_key()
+    print('Key Retrieved')
     
-    # gets the users security group that allows port 80 and 22
     print('Getting Security Group...')
+    print('NOTE:')
+    print('Ubuntu VM has given Auth errors while trying retrieve user\'s security group')
+    print('If you experience a similar error message then manually inputting your security group ID is required')
+    time.sleep(5)
+    # gets the users security group that allows port 80 and 22
     port_list = ['80', '22']
     sec_grp_id = get_sec_group(port_list)
+    print('Security Group Retrieved')
     # A try/except to prevent the script from crashing
     try:
         # creation of instance

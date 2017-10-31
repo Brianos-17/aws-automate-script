@@ -32,7 +32,6 @@ def input_int(prompt, max_in):
 # to check if the Sec Group has any open ports AND belongs to the Default VPC
 # There is then a second loop that checks for a Sec Group that has ports 80 and 22 open ONLY
 def get_sec_group(port_list):
-    sec_list = []
     ec2_client = boto3.client('ec2')
     sec_grps = ec2_client.describe_security_groups()['SecurityGroups']
     default_vpc_id = ''
@@ -44,37 +43,35 @@ def get_sec_group(port_list):
             default_vpc_id = vpc.vpc_id
             print("Default VPC ID: " + default_vpc_id)
             break
-    
+
+    grp_id = ''
     # This loops though the user's security groups and stores the Security Group's ID and their open Ports into a list
     # Each security group can have a varying amount of open ports, one could have 0 open ports, another could have ports 22, 25, 80
     # This loop filters out all security groups that either dont have ANY ports open AND if they belong to the Defualt VPC
     for group in sec_grps:
+        
         # checks if the security group is in the default VPC group
         if group['VpcId'] == default_vpc_id:
-            open_port_list = []
+            open_ports = []
             # loop through available port numbers within the security group
             for port in group['IpPermissions']:
                 # Checking is there is a FromPort field as some dont
                 if 'FromPort' in port:
                     # Adds port to list
-                    open_port_list.append(str(port['FromPort']))
-            # tuple variable
-            sec_tup = (group['GroupId'], open_port_list)
-            # adding tuple to list
-            sec_list.append(sec_tup)
-
-    # This portion loops through 'sec_list' and searched for a Security Group that has ONLY port 22 and 80 open
-    # This project only requires the use of port 22 and 80 so decided to keep this feature static
-    # If none are found then make_sec_group() is run and will make the required security group
-    port_join = ''.join(sorted(port_list))
-    grp_id = ''
-    # loops through list of tuples and compares the ports to the port_list param
-    for group in sec_list:
-        ports = ''.join(sorted(group[1]))
-        # if the ports match then the security group id will be returned
-        if ports == port_join:
-            grp_id = group[0]
-            break
+                    # reason for list is so it can be sorted later
+                    open_ports.append(str(port['FromPort']))
+            
+            # checking if any open ports were found
+            if len(open_ports) > 0:
+                # sorting of port_list param and open_ports variable
+                port_list_srt = ''.join(sorted(port_list))
+                open_ports_srt = ''.join(sorted(open_ports))
+                
+                # if found open_ports match the param port_list then
+                # it'll assign the Sec Group ID to grp_id and break from the loop
+                if open_ports_srt == port_list_srt:
+                    grp_id = group['GroupId']
+                    break
     
     # this checks if an appropriate security group was found
     # if none are found then one is made
