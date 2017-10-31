@@ -76,7 +76,7 @@ def get_sec_group(port_list):
     # this checks if an appropriate security group was found
     # if none are found then one is made
     if len(grp_id) == 0:
-        print("No appropriate security group found, making a new one")
+        print("\nNo appropriate security group found, making a new one")
         return make_sec_group(port_list)
     else:
         return grp_id
@@ -85,8 +85,7 @@ def get_sec_group(port_list):
 # makes a new security group that open the ports passed in from param port_list
 # port_list is currently [80, 22]
 def make_sec_group(port_list):
-    print("So security group with just ports 80 and 22 were found.")
-    print("Making an appropriate one now...")
+    print("Making an appropriate one Security Group...")
     # assigning group name
     port_join = ''.join(sorted(port_list))
     group_name = "auto-secure-group-" + port_join
@@ -104,10 +103,10 @@ def make_sec_group(port_list):
     (status, output) = subprocess.getstatusoutput(grp_cmd)
     # returns id of newly created security group
     if status == 0:
-        print("Created Security Group: " +  group_name)
+        print("Created Security Group: " +  group_name + "\n")
         return output
     else:
-        print("Failed to create security group: " + group_name)
+        print("Failed to create security group: " + group_name + "\n")
         print(output)
 
 

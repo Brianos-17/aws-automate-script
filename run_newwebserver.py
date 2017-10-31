@@ -25,7 +25,7 @@ def create_instance():
     
     # function to get the key path and key name
     (key_dir, key_nm) = get_key()
-    print('Key Retrieved')
+    print('Key Retrieved\n')
     
     print('Getting Security Group...')
     print('NOTE:')
@@ -35,7 +35,7 @@ def create_instance():
     # gets the users security group that allows port 80 and 22
     port_list = ['80', '22']
     sec_grp_id = get_sec_group(port_list)
-    print('Security Group Retrieved')
+    print('Security Group Retrieved\n')
     # A try/except to prevent the script from crashing
     try:
         # creation of instance
@@ -65,7 +65,7 @@ def create_instance():
         
         # waiting a minute before a command is ran remotely
         # command allows for writing permissions to index.html
-        cmd = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'sudo chmod +x /usr/share/nginx/html/index.html'"
+        cmd = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'pwd'"
         time.sleep(60)
         (status, output) = subprocess.getstatusoutput(cmd)
         print(output)
@@ -189,14 +189,18 @@ def put_nginx(url):
     inst_ip = list_instances()[2]
     
     try:
+        perm_cmd = "ssh -t -o StrictHostKeyChecking=no -i " + key_dir + " ec2-user@" + inst_ip + " 'sudo chmod 646 /usr/share/nginx/html/index.html'"
+        (status, output) = subprocess.getstatusoutput(perm_cmd)
         # putting echo command into a string
-        cmd ="'echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
+        cmd ="'sudo echo \"<img src=" + url + ">\" >> /usr/share/nginx/html/index.html'"
         index_cmd = 'ssh -t -o StrictHostKeyChecking=no -i ' + key_dir + ' ec2-user@' + inst_ip + ' ' + cmd
         (status, output) = subprocess.getstatusoutput(index_cmd)
         if status == 0:
             print("Image successfully added to index.html")
+            print(output)
         else:
             print("Failed to add image to index.html")
+            print(output)
             
     except Exception as error:
         # prints out error to console for user
