@@ -28,9 +28,9 @@ def create_instance():
     print('Key Retrieved\n')
     
     print('Getting Security Group...')
-    print('NOTE:')
+    print('\nNOTE:')
     print('Ubuntu VM has given Auth errors while trying retrieve user\'s security group')
-    print('If you experience a similar error message then manually inputting your security group ID is required')
+    print('If you experience a similar error message then manually inputting your security group ID is required\n')
     time.sleep(5)
     # gets the users security group that allows port 80 and 22
     port_list = ['80', '22']
@@ -62,6 +62,7 @@ def create_instance():
         # getting instance IP and printing to screen
         inst_ip = instance[0].public_ip_address
         print("Public IP address:", inst_ip)
+        print("Please wait as instance boots up...")
         
         # waiting a minute before a command is ran remotely
         # command allows for writing permissions to index.html
